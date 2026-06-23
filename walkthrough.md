@@ -16,11 +16,11 @@ Flow:
 3. iPad fails with `Configuration could not be retrieved`;
 4. the only visible option is to go back.
 
-![Setup Assistant: Wi-Fi selected](media/01-wifi-selected.jpeg)
+<img src="media/01-wifi-selected.jpeg" alt="Setup Assistant: Wi-Fi selected" width="420">
 
-![Setup Assistant: fetching configuration](media/02-fetching-configuration.jpeg)
+<img src="media/02-fetching-configuration.jpeg" alt="Setup Assistant: fetching configuration" width="420">
 
-![Setup Assistant: configuration failed](media/03-configuration-failed.jpeg)
+<img src="media/03-configuration-failed.jpeg" alt="Setup Assistant: configuration failed" width="420">
 
 The visible UI did not show a useful organization name or detailed error code.
 
