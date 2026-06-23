@@ -1,0 +1,18 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local lab binaries and downloads
+tools/
+*.iso
+*.torrent
+*.exe
+
+# Local secret/env files
+.env
+.env.*
+*.pem
+*.key
+id_rsa
+id_ed25519
