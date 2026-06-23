@@ -5,6 +5,37 @@ Device: iPad Air 2 Wi-Fi (`iPad5,3`)
 OS: iPadOS `15.8.8` (`19H422`)  
 Result: bypassed; Setup Assistant completed; bypass survived normal reboot
 
+## Table of Contents
+
+1. [The symptom](#1-the-symptom)
+2. [Initial hypothesis](#2-initial-hypothesis)
+3. [USB and activation checks](#3-usb-and-activation-checks)
+4. [MCInstall findings](#4-mcinstall-findings)
+5. [Live syslog: not a local network problem](#5-live-syslog-not-a-local-network-problem)
+6. [Access path: palera1n/checkm8](#6-access-path-palera1ncheckm8)
+7. [The key local state](#7-the-key-local-state)
+8. [Minimal payload](#8-minimal-payload)
+9. [Post-bypass verification](#9-post-bypass-verification)
+10. [Reboot test](#10-reboot-test)
+11. [Why this worked](#11-why-this-worked)
+12. [Limitations](#12-limitations)
+
+```mermaid
+flowchart TD
+    A["Erase / Restore iPad"] --> B["Setup Assistant starts"]
+    B --> C["Wi-Fi selected"]
+    C --> D{"Fetching Configuration"}
+    D -->|"Fails"| E["Configuration could not be retrieved"]
+    E --> F["Diagnose via USB\n(ideviceinfo, idevicesyslog)"]
+    F --> G["Confirm: not a network issue\nbut broken ADE/cloud config path"]
+    G --> H["Boot iPad via palera1n/checkm8\n(DFU mode over USB)"]
+    H --> I["SSH into iPad\n(iproxy + Dropbear port 44)"]
+    I --> J["Flip local plist key\nLockdownActivation...Available = false"]
+    J --> K["Restart cfprefsd"]
+    K --> L["Setup Assistant completes normally"]
+    L --> M["Reboot → normal iPad\n(jailbreak gone, bypass persists)"]
+```
+
 ## 1. The symptom
 
 After a full erase/restore, the iPad entered Setup Assistant normally. Language, region, and Wi-Fi selection worked. The failure happened immediately after continuing from the Wi-Fi screen.
@@ -38,7 +69,11 @@ The investigation started with read-only USB diagnostics before changing anythin
 
 ## 3. USB and activation checks
 
-The iPad was detected correctly over USB and identified as:
+The iPad was detected correctly over USB. Device identity was obtained using `ideviceinfo` from the libimobiledevice suite:
+
+```bash
+ideviceinfo -s
+```
 
 ```text
 ProductType: iPad5,3
@@ -49,7 +84,11 @@ iPadOS: 15.8.8
 Build: 19H422
 ```
 
-Lockdown status showed:
+Lockdown status was obtained via `ideviceinfo -q com.apple.mobile.lockdown`:
+
+```bash
+ideviceinfo -q com.apple.mobile.lockdown
+```
 
 ```text
 ActivationState = Activated
@@ -59,9 +98,11 @@ PasswordProtected = false
 TrustedHostAttached = true
 ```
 
-That was the first key clue: Apple activation itself had already succeeded. The failure was after activation, during Setup Assistant’s configuration/enrollment phase.
+That was the first real clue: Apple activation itself had already succeeded. The failure was after activation, during Setup Assistant’s configuration/enrollment phase.
 
 ## 4. MCInstall findings
+
+These checks were performed using a lockdown client (such as `pymobiledevice3` or a custom script using `libimobiledevice`) to query the `com.apple.mobile.MCInstall` service over USB.
 
 Using the `com.apple.mobile.MCInstall` service:
 
@@ -72,7 +113,7 @@ GetCloudConfiguration -> empty / none
 
 So there was no installed MDM profile to remove, and no completed cloud configuration stored locally.
 
-A minimal `SetCloudConfiguration` test was attempted with explicit lab approval, but iOS rejected it:
+A minimal `SetCloudConfiguration` test was attempted, but iOS rejected it:
 
 ```text
 MCCloudConfigErrorDomain 33004
@@ -83,7 +124,13 @@ Readback stayed empty, so that test did not persistently modify the device.
 
 ## 5. Live syslog: not a local network problem
 
-During a fresh Setup Assistant attempt, USB syslog showed that networking was healthy:
+Live syslog was captured over USB using:
+
+```bash
+idevicesyslog
+```
+
+The output was filtered for MCInstall/CloudConfig related entries. During a fresh Setup Assistant attempt, USB syslog showed that networking was healthy:
 
 - DNS worked;
 - TCP worked;
@@ -112,6 +159,7 @@ The final execution environment:
 - Kali Linux Live `2026.1`, amd64;
 - official palera1n Linux x86_64 binary;
 - rootless palera1n boot;
+  For details on the palera1n boot procedure, see [docs/palera1n-runbook.md](docs/palera1n-runbook.md).
 - `iproxy` for USB port forwarding.
 
 Read-only palera1n identification:
@@ -160,6 +208,8 @@ SSH:
 ssh -p 2222 root@127.0.0.1
 ```
 
+See [docs/palera1n-runbook.md](docs/palera1n-runbook.md) for the full USB SSH procedure and common connection issues.
+
 The root filesystem was sealed/read-only, but `/private/var` was writable. That was ideal for a minimal preference/state change without touching the system volume.
 
 ## 7. The key local state
@@ -177,7 +227,7 @@ HasCheckedForAutoInstalledProfiles = 1
 LockdownActivationIndicatesCloudConfigurationAvailable = 1
 ```
 
-The second key was the important one. It indicated that activation/lockdown believed a cloud configuration was available.
+The second key is the important one. It indicated that activation/lockdown believed a cloud configuration was available.
 
 Setup Assistant was not yet completed:
 
@@ -230,6 +280,12 @@ Expected result:
 After going back/forward once in Setup Assistant, the iPad continued through the normal setup flow.
 
 ## 9. Post-bypass verification
+
+Verification was done via SSH and `plutil` on the device:
+
+```sh
+plutil -show /var/mobile/Library/Preferences/com.apple.purplebuddy.plist
+```
 
 After setup completed:
 

@@ -26,13 +26,42 @@ In this case, the device still appeared to have an ADE/cloud configuration requi
 
 <img src="media/03-configuration-failed.jpeg" alt="Setup Assistant: configuration failed" width="420">
 
+## Prerequisites
+
+### Hardware
+
+- A legacy iPad with an A8–A11 chip (e.g. iPad Air 2, iPad mini 4, iPad 5th/6th gen)
+- A USB-A to Lightning cable (USB-A preferred; USB-C hubs and adapters can cause timing issues with checkm8)
+- A computer with a USB-A port
+- A USB stick (8 GB minimum) if booting Kali Live
+
+### Software
+
+- A Linux environment (Kali Live was used in this lab; most Debian-based distros should work)
+- Internet access on the host for installing packages
+
+> **Note:** palera1n also provides a macOS binary. Windows is not natively supported; WSL2 can work in some cases but USB passthrough to WSL is unreliable for checkm8 timing. If you don't have a Linux or macOS machine, booting from a Kali Live USB stick is the recommended approach.
+
+### Estimated time
+
+About 1 hour for a first run. DFU mode timing may take a few extra attempts.
+
 ## What this repo contains
 
 - [walkthrough.md](walkthrough.md) — the main bypass PoC/walkthrough from symptom to working device.
 - [docs/diagnostics.md](docs/diagnostics.md) — USB, activation, MCInstall, and syslog findings.
 - [docs/palera1n-runbook.md](docs/palera1n-runbook.md) — Kali Live, palera1n, DFU, and USB SSH procedure.
 - [docs/rollback.md](docs/rollback.md) — rollback notes, reboot behavior, and limitations.
+- [docs/concepts.md](docs/concepts.md) — background on checkm8, palera1n, DFU, ADE, and other key concepts.
 - [media/](media/) — redacted photos of the Setup Assistant failure flow.
+
+**Suggested reading order:**
+
+1. Start with this README for context and scope.
+2. Read [docs/concepts.md](docs/concepts.md) if you're unfamiliar with checkm8, palera1n, or DFU mode.
+3. Follow [walkthrough.md](walkthrough.md) from start to finish — this is the main guide.
+4. Refer to [docs/palera1n-runbook.md](docs/palera1n-runbook.md) when the walkthrough references the palera1n boot procedure.
+5. See [docs/rollback.md](docs/rollback.md) for undo steps and persistence notes.
 
 ## Device and scope
 
@@ -45,6 +74,8 @@ Target device:
 - Build: `19H422`
 
 This was performed on an owned/released device. The workflow is for research on a legacy iPad. Do not use it on devices you do not own or do not have explicit permission to test.
+
+Bypassing ADE on devices you do not own may violate local laws. If you have a device that is legitimately yours but still assigned to an organization in Apple School Manager or Apple Business Manager, the proper administrative path is to contact that organization (or [Apple Support](https://support.apple.com) with proof of purchase) to have the device released.
 
 ## Result
 

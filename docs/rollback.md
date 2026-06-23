@@ -1,5 +1,7 @@
 # Rollback, persistence, and limitations
 
+> See also: [concepts.md](concepts.md) for background on palera1n's semi-tethered model, [palera1n-runbook.md](palera1n-runbook.md) for the boot procedure needed to regain SSH access.
+
 ## Preference backup
 
 During the lab, the original preference file was backed up before editing:
@@ -58,7 +60,8 @@ Expected risk:
 erase/restore -> activation -> local cloudconfig indicator returns -> Setup Assistant may block again
 ```
 
-The long-term administrative fix is still release/removal from Apple School Manager or Apple Business Manager by the organization that owns the ADE assignment.
+The only permanent administrative fix is to have the organization that owns the ADE assignment remove the device from Apple School Manager or Apple Business Manager. If the organization no longer exists or is unresponsive, contact [Apple Support](https://support.apple.com) with proof of purchase.
+
 
 ## Boundaries
 
